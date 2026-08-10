@@ -1,4 +1,4 @@
-# data-model
+# sql-model
 
 A shared, high-performance, async-first persistence infrastructure layer using PostgreSQL, SQLAlchemy 2.0, SQLModel, asyncpg, and Alembic.
 
@@ -24,7 +24,7 @@ Designed for event-driven and MLOps platforms. This package contains **zero busi
 Install using `uv`:
 
 ```bash
-uv add data-model
+uv add sql-model
 ```
 
 ---

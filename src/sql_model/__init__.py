@@ -1,19 +1,20 @@
+from sql_model.database import BaseTable, Database, manage_session, transactional
 from sql_model.exceptions import (
     BulkWriteError,
     ConflictError,
-    DataModelError,
     DatabaseConnectionError,
+    DataModelError,
     NotFoundError,
     RepositoryError,
     SessionError,
     TransactionError,
 )
-from sql_model.database import Database, BaseTable, transactional, manage_session
-from sql_model.repositories import Repository, Page, paginate_offset, paginate_cursor
-from sql_model.uow import UnitOfWork, SQLUnitOfWork
-from sql_model.postgres import create_postgres_pool, BulkWriter
 from sql_model.migrations import run_migrations_offline, run_migrations_online
+from sql_model.postgres import BulkWriter, create_postgres_pool
+from sql_model.repositories import Page, Repository, paginate_cursor, paginate_offset
+from sql_model.services import CRUDService
 from sql_model.testing import temp_database, transaction_session
+from sql_model.uow import SQLUnitOfWork, UnitOfWork
 
 __all__ = [
     # Exceptions
@@ -47,4 +48,6 @@ __all__ = [
     # Testing
     "temp_database",
     "transaction_session",
+    # CRUD
+    "CRUDService",
 ]
