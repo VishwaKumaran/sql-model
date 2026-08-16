@@ -1,9 +1,10 @@
-import uuid
-from datetime import datetime, timezone
 import re
-from sqlmodel import SQLModel, Field
-from sqlalchemy import DateTime, Column, text, MetaData
+import uuid
+from datetime import UTC, datetime
+
+from sqlalchemy import MetaData, text
 from sqlalchemy.orm import declared_attr
+from sqlmodel import DateTime, Field, SQLModel
 
 # Standard database naming conventions to avoid platform-specific constraint name issues.
 NAMING_CONVENTION = {
@@ -29,27 +30,19 @@ class BaseTable(SQLModel):
     )
 
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_column=Column(
-            DateTime(timezone=True),
-            nullable=False,
-            server_default=text("TIMEZONE('utc', CURRENT_TIMESTAMP)"),
-        ),
+        default_factory=lambda: datetime.now(UTC),
+        nullable=False,
+        sa_type=DateTime(timezone=True),
     )
 
     updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_column=Column(
-            DateTime(timezone=True),
-            nullable=False,
-            server_default=text("TIMEZONE('utc', CURRENT_TIMESTAMP)"),
-            onupdate=lambda: datetime.now(timezone.utc),
-        ),
+        default_factory=lambda: datetime.now(UTC),
+        nullable=False,
+        sa_type=DateTime(timezone=True),
     )
 
     @declared_attr.directive
     def __tablename__(cls) -> str:
         """Automatically generate table name from class name in snake_case."""
         name = cls.__name__
-        pattern = re.compile(r"(?<!^)(?=[A-Z])")
-        return pattern.sub("_", name).lower()
+        return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()

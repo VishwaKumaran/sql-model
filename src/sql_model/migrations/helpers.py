@@ -1,4 +1,5 @@
 from typing import Any
+
 from alembic import context
 from sqlalchemy.ext.asyncio import AsyncEngine
 

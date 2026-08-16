@@ -1,5 +1,6 @@
 import uuid
 from typing import Any, Generic, TypeVar
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -61,19 +62,34 @@ class Repository(Generic[T]):
         """Alias for create, aligning with standard Unit of Work interfaces."""
         return await self.create(entity)
 
-    async def update(self, entity: T) -> T:
-        """Update an existing entity."""
+    async def update(self, id: uuid.UUID, entity: T) -> T:
         try:
-            self.session.add(entity)
+            existing = await self.get(id)
+
+            if existing is None:
+                raise NotFoundError(f"{self.model.__name__} with ID {id} not found.")
+
+            entity_data = entity.model_dump(
+                exclude={"id"},
+                exclude_unset=True,
+            )
+
+            for field, value in entity_data.items():
+                setattr(existing, field, value)
+
             await self.session.flush()
-            await self.session.refresh(entity)
-            return entity
+            await self.session.refresh(existing)
+
+            return existing
+
         except IntegrityError as e:
             await self.session.rollback()
-            raise ConflictError(f"Conflict updating {self.model.__name__}: {e}") from e
+            raise ConflictError(...) from e
+        except NotFoundError:
+            raise
         except Exception as e:
             await self.session.rollback()
-            raise RepositoryError(f"Error updating {self.model.__name__}: {e}") from e
+            raise RepositoryError(...) from e
 
     async def delete(self, id: uuid.UUID) -> None:
         """Delete an entity by its UUID."""
@@ -109,7 +125,7 @@ class Repository(Generic[T]):
         self,
         cursor: str | None = None,
         size: int = 20,
-        sort_column: str = "id",
+        sort_by: str | None = "id",
         descending: bool = False,
         **filters: Any,
     ) -> Page[T]:
@@ -125,7 +141,7 @@ class Repository(Generic[T]):
                 self.model,
                 cursor=cursor,
                 size=size,
-                sort_column=sort_column,
+                sort_column=sort_by,
                 descending=descending,
             )
         except Exception as e:
